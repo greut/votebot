@@ -1,0 +1,10 @@
+.cache
+.coverage
+__py*
+*.py[co]
+bin
+lib
+lib64
+include
+.egg-info
+pyvenv.cfg
