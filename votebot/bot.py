@@ -162,10 +162,12 @@ class Bot:
                         ts=timestamp)
 
     def usernames(self, *ids):
-        """
+        r"""
         Convert the user ids into username.
 
-        :arguments:
+        :param \*ids: see below
+
+        :arguments: a list of user identifiers
         """
         ids = set(ids)
         ids.remove(self.rtm['self']['id'])

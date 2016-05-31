@@ -62,7 +62,7 @@ async def call(method, file=None, **kwargs):
 
     :param file: File pointer
     :type file: file
-    :param **kwargs: see below
+    :param \**kwargs: see below
 
     :Keyword Arguments:
         All the arguments required by the method from the `Slack Web API`_.
