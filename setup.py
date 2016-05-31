@@ -15,7 +15,9 @@ setup(
     ),
     extras_require={
         'docs': ('sphinx',),
-        'tests': ('pytest',
+        'tests': ('asynctest',
+                  'pydocstyle',
+                  'pytest',
                   'pytest-asyncio',
                   'pytest-coverage',
                   'pytest-isort',

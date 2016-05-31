@@ -1,3 +1,4 @@
+"""Default bot."""
 import asyncio
 import logging
 import os
@@ -7,16 +8,17 @@ from .bot import Bot
 
 
 def main(argv):
+    """Le bot."""
     token = os.environ.get('SLACK_TOKEN')
     channel = os.environ.get('SLACK_CHANNEL')
     debug = 'DEBUG' in os.environ
 
-    if not token or not channel:
-        print("Please configure a SLACK_TOKEN and a SLACK_CHANNEL.",
+    if not token:
+        print("Please configure a SLACK_TOKEN.",
               file=sys.stderr)
         return 1
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     five_minutes = 5 * 60
     bot = Bot(token, channel=channel, timeout=five_minutes)
