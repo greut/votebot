@@ -85,7 +85,7 @@ class Bot:
                     message = json.loads(msg.data)
                     yield from self.queue.put(message)
             finally:
-                yield from ws.release()
+                yield from ws.close()
 
     @asyncio.coroutine
     def _consume(self):
