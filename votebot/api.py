@@ -45,18 +45,20 @@ Or send the raw content via ``content``.
 
 """
 
+import asyncio
 import json
 import logging
 from collections.abc import Mapping
 
-from aiohttp import ClientSession, FormData
+from aiohttp import ClientSession, FormData, Timeout
 
 from .config import SLACK_DOMAIN
 
 LOG = logging.getLogger(__name__)
 
 
-async def call(method, file=None, **kwargs):
+@asyncio.coroutine
+def call(method, file=None, **kwargs):
     r"""
     Perform an API call to Slack.
 
@@ -85,12 +87,15 @@ async def call(method, file=None, **kwargs):
     logging.debug('POST /api/{0} {1}'.format(method, form('utf-8')))
 
     with ClientSession() as session:
-        async with session.post('https://{0}/api/{1}'
-                                .format(SLACK_DOMAIN, method),
-                                data=form) as response:
+        with Timeout(10):
+            response = yield from session.post('https://{0}/api/{1}'
+                                               .format(SLACK_DOMAIN, method),
+                                               data=form)
             assert 200 == response.status, response
-            body = await response.json()
-            logging.debug('Response /api/{0} {1} {2}'.format(method,
-                                                             response.status,
-                                                             body))
-            return body
+            try:
+                body = yield from response.json()
+                logging.debug('Response /api/{0} {1} {2}'
+                              .format(method, response.status, body))
+                return body
+            finally:
+                yield from response.release()

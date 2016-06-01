@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from asynctest import patch
@@ -10,16 +12,18 @@ def bot():
 
 
 @pytest.mark.asyncio
-async def test_bot_api_test(bot):
+@asyncio.coroutine
+def test_bot_api_test(bot):
     """Test that shows how to create a mock for async."""
 
     def mock():
-        async def call(*args, **kwargs):
+        @asyncio.coroutine
+        def call(*args, **kwargs):
             return args, kwargs
         return call
 
     with patch('votebot.bot.call', new_callable=mock):
-        args, kwargs = await bot.call('api.test')
+        args, kwargs = yield from bot.call('api.test')
 
     assert ('api.test',) == args
     assert 'xoxb-123' == kwargs['token']

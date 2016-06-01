@@ -39,13 +39,18 @@ class Bot:
         asyncio.ensure_future(self._run())
         return self.future
 
-    async def call(self, method, file=None, **kwargs):
+    @asyncio.coroutine
+    def call(self, method, file=None, **kwargs):
         """Wrap the api.call with the token."""
-        return await call(method, file=file, token=self.__token, **kwargs)
+        return (yield from call(method,
+                                file=file,
+                                token=self.__token,
+                                **kwargs))
 
-    async def _run(self):
+    @asyncio.coroutine
+    def _run(self):
         """Run the bot by connecting to the Real-Time Messages API."""
-        self.rtm = await self.call('rtm.start')
+        self.rtm = yield from self.call('rtm.start')
 
         if not self.rtm['ok']:
             self.future.set_result(ValueError(self.rtm['error']))
@@ -64,23 +69,33 @@ class Bot:
         asyncio.ensure_future(self._consume())
         asyncio.ensure_future(self._listen())
 
-    async def _listen(self):
+    @asyncio.coroutine
+    def _listen(self):
         """Listen to the WebSocket URL."""
-        async with ClientSession() as session:
-            async with session.ws_connect(self.rtm['url']) as ws:
-                self.ws = ws
-                async for msg in ws:
+        with ClientSession() as session:
+            ws = session.ws_connect(self.rtm['url'])
+            self.ws = ws
+            try:
+                while True:
+                    msg = yield from ws.receive()
+                    if msg.tp == MsgType.close:
+                        break
+
                     assert msg.tp == MsgType.text
                     message = json.loads(msg.data)
-                    await self.queue.put(message)
+                    yield from self.queue.put(message)
+            finally:
+                yield from ws.release()
 
-    async def _consume(self):
+    @asyncio.coroutine
+    def _consume(self):
         """Consume the messages from the queue."""
         while True:
-            message = await self.queue.get()
+            message = yield from self.queue.get()
             asyncio.ensure_future(self.on_message(message))
 
-    async def on_message(self, message):
+    @asyncio.coroutine
+    def on_message(self, message):
         """Handle a message."""
         self.log.debug("GOT {0}".format(message))
 
@@ -96,11 +111,11 @@ class Bot:
         question = '<!here> (<@{0}>): {1}'.format(message['user'], query)
 
         self.log.info('Add new question: {0}'.format(question))
-        response = await self.call('chat.postMessage',
-                                   channel=self.channel_id,
-                                   username=self.name,
-                                   text=question,
-                                   icon_emoji=':ballot_box_with_ballot:')
+        response = yield from self.call('chat.postMessage',
+                                        channel=self.channel_id,
+                                        username=self.name,
+                                        text=question,
+                                        icon_emoji=':ballot_box_with_ballot:')
         # End of votes.
         asyncio.ensure_future(self.cast_votes(question,
                                               response['ts'],
@@ -114,7 +129,8 @@ class Bot:
                                             channel=response['channel'],
                                             timestamp=response['ts']))
 
-    async def cast_votes(self, question, timestamp, timeout):
+    @asyncio.coroutine
+    def cast_votes(self, question, timestamp, timeout):
         """
         End a vote by displaying the results and delete the original message.
 
@@ -126,7 +142,7 @@ class Bot:
         :type int:
         """
         self.log.info('Wait {0}s before closing vote.'.format(timeout))
-        done, pending = await asyncio.wait(
+        done, pending = yield from asyncio.wait(
             [self.future, asyncio.sleep(timeout)],
             return_when=asyncio.FIRST_COMPLETED
         )
@@ -134,9 +150,9 @@ class Bot:
         if self.future in done:
             return
 
-        response = await self.call('reactions.get',
-                                   channel=self.channel_id,
-                                   timestamp=timestamp)
+        response = yield from self.call('reactions.get',
+                                        channel=self.channel_id,
+                                        timestamp=timestamp)
 
         fields = []
         for a in response['message']['reactions']:
@@ -145,21 +161,23 @@ class Bot:
                 fields.append((a['count']-1, a['name'], a['users']))
         sorted(fields)
 
-        await self.call('chat.postMessage',
-                        channel=self.channel_id,
-                        username=self.name,
-                        attachments=[{
-                            'text': question,
-                            'fields': [{'title': ':{0}: {1}'.format(n, c),
-                                        'value': ', '.join(self.usernames(*u))}
-                                       for c, n, u in fields]
-                        }],
-                        icon_emoji=':ballot_box_with_ballot:')
+        attachments = [{
+            'text': question,
+            'fields': [{'title': ':{0}: {1}'.format(n, c),
+                        'value': ', '.join(self.usernames(*u))}
+                       for c, n, u in fields]
+        }]
+
+        asyncio.ensure_future(self.call('chat.postMessage',
+                                        channel=self.channel_id,
+                                        username=self.name,
+                                        attachments=attachments,
+                                        icon_emoji=':ballot_box_with_ballot:'))
 
         self.log.info("Deleting {0}".format(question))
-        await self.call('chat.delete',
-                        channel=self.channel_id,
-                        ts=timestamp)
+        asyncio.ensure_future(self.call('chat.delete',
+                                        channel=self.channel_id,
+                                        ts=timestamp))
 
     def usernames(self, *ids):
         r"""

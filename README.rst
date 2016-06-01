@@ -14,7 +14,7 @@ The bot for voting on stuffs.
 Installation
 ------------
 
-This bot uses extensively features from Python 3.5.
+This bot uses extensively features from Python 3.4.
 
 .. code-block:: shell
 

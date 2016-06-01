@@ -1,3 +1,5 @@
+import asyncio
+
 from urllib.parse import urlencode
 
 import pytest
@@ -22,20 +24,9 @@ class MockClientSession:
 
 
 class MockSession:
+    @asyncio.coroutine
     def post(self, *args, **kwargs):
-        return MockRequest(*args, **kwargs)
-
-
-class MockRequest:
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
-    async def __aenter__(self):
-        return MockResponse(200, *self.args, **self.kwargs)
-
-    async def __aexit__(self, *args):
-        pass
+        return MockResponse(200, *args, **kwargs)
 
 
 class MockResponse:
@@ -44,7 +35,20 @@ class MockResponse:
         self.args = args
         self.kwargs = kwargs
 
-    async def json(self):
+    @asyncio.coroutine
+    def __aenter__(self):
+        return self
+
+    @asyncio.coroutine
+    def __aexit__(self, *args):
+        pass
+
+    @asyncio.coroutine
+    def release(self):
+        pass
+
+    @asyncio.coroutine
+    def json(self):
         return {'ok': False,
                 'error': 'I am a mock',
                 'args': self.args,
@@ -52,9 +56,10 @@ class MockResponse:
 
 
 @pytest.mark.asyncio
-async def test_api_simple():
+@asyncio.coroutine
+def test_api_simple():
     with patch('votebot.api.ClientSession', new=MockClientSession):
-        response = await call('api.test', token='xoxb-123')
+        response = yield from call('api.test', token='xoxb-123')
 
     assert not response['ok']
     assert 'I am a mock' == response['error']
@@ -65,19 +70,21 @@ async def test_api_simple():
 
 
 @pytest.mark.asyncio
-async def test_api_subfields():
+@asyncio.coroutine
+def test_api_subfields():
     with patch('votebot.api.ClientSession', new=MockClientSession):
-        response = await call('api.dummy', fields=[1, 2, 3])
+        response = yield from call('api.dummy', fields=[1, 2, 3])
 
     data = response['kwargs']['data']('utf-8')
     assert urlencode({'fields': '[1, 2, 3]'}).encode('utf-8') == data
 
 
 @pytest.mark.asyncio
-async def test_api_file(hello_file):
+@asyncio.coroutine
+def test_api_file(hello_file):
     with patch('votebot.api.ClientSession', new=MockClientSession):
         with open(hello_file, 'r', encoding='utf-8') as f:
-            response = await call('api.file', file=f)
+            response = yield from call('api.file', file=f)
 
     data = response['kwargs']['data']
     assert data.is_multipart
