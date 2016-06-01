@@ -9,7 +9,7 @@ Votebot
    :alt: Build status
    :target: https://travis-ci.org/HE-Arc/votebot
 
-The bot for voting on stuffs.
+The bot for voting on stuff.
 
 Installation
 ------------
