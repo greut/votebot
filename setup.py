@@ -37,7 +37,7 @@ setup(
         'tests': (
             'asynctest',
             'pydocstyle',
-            'pytest',
+            'pytest>=2.8',
             'pytest-asyncio',
             'pytest-coverage',
             'pytest-isort',
