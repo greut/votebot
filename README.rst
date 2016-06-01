@@ -1,6 +1,14 @@
 Votebot
 =======
 
+.. image:: https://readthedocs.org/projects/votebot/badge/?version=latest
+   :alt: Documentation status
+   :target: http://votebot.readthedocs.io/en/latest/
+
+.. image:: https://travis-ci.org/HE-Arc/votebot.svg?branch=master
+   :alt: Build status
+   :target: https://travis-ci.org/HE-Arc/votebot
+
 The bot for voting on stuffs.
 
 Installation
