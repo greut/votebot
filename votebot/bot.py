@@ -73,7 +73,7 @@ class Bot:
     def _listen(self):
         """Listen to the WebSocket URL."""
         with ClientSession() as session:
-            ws = session.ws_connect(self.rtm['url'])
+            ws = yield from session._ws_connect(self.rtm['url'])
             self.ws = ws
             try:
                 while True:
