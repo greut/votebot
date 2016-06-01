@@ -12,7 +12,7 @@ with open(path.join(here, 'README.rst'), 'r', encoding='utf-8') as f:
 
 setup(
     name="slack-votebot",
-    version="0.0.1a2",
+    version="0.0.1a3",
     author="Yoan Blanc",
     author_email="yoan@dosimple.ch",
     homepage="https://github.com/HE-Arc/votebot",
