@@ -4,6 +4,8 @@ python:
   - "nightly"
 
 install:
-  - pip install -e .[tests]
+  - pip install -e .[docs,tests]
+
 script:
   - py.test
+  - sphinx-build -a -c docs -vWT docs _build

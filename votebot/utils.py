@@ -19,8 +19,8 @@ def extract(message):
     >>> extract('No emoji')
     ('No emoji', [':+1:', ':heart:'])
 
-    .. notes:: if no emojis are found after the question, you'll automagically
-               get the ``:+1:`` as well as the ``:heart:``.
+    .. note:: if no emojis are found after the question, you'll automagically
+              get the ``:+1:`` as well as the ``:heart:``.
     """
     # FIXME: ugly hack to preserve skin tone.
     message = re.sub(r'::skin-tone-', '§§skin-tone-', message)
