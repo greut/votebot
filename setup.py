@@ -11,14 +11,17 @@ with open(path.join(here, 'README.rst'), 'r', encoding='utf-8') as f:
 
 
 setup(
-    name="votebot",
-    version="0.0.1dev20180531",
+    name="slack-votebot",
+    version="0.0.1a2",
     author="Yoan Blanc",
     author_email="yoan@dosimple.ch",
+    homepage="https://github.com/HE-Arc/votebot",
+    license="https://opensource.org/licenses/BSD-3-Clause",
     description=__doc__,
     long_description=long_description,
     packages=find_packages(exclude=('contrib', 'docs', 'tests')),
-    descriptors=(
+    keywords='slack asyncio bot',
+    classifiers=(
         "Development Status :: 2 - Pre-Alpha",
         "Environment :: Console",
         "Intended Audience :: Education",

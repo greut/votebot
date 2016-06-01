@@ -48,7 +48,6 @@ Or send the raw content via ``content``.
 import asyncio
 import json
 import logging
-from collections.abc import Mapping
 
 from aiohttp import ClientSession, FormData, Timeout
 
@@ -74,8 +73,8 @@ def call(method, file=None, **kwargs):
     """
     # JSON encode any sub-structure...
     for k, w in kwargs.items():
-        # list, tuple or dict but not a str.
-        if isinstance(w, (Mapping, list, tuple)):
+        # keep str as is.
+        if not isinstance(w, (bytes, str)):
             kwargs[k] = json.dumps(w)
 
     form = FormData(kwargs)
