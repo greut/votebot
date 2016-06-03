@@ -121,7 +121,7 @@ class Bot:
                     "title": "By",
                     "value": "".join(self.usernames(message['user'])),
                     "short": True,
-                },{
+                }, {
                     "title": "Duration",
                     "value": "{0:.1f}m".format(self.timeout / 60),
                     "short": True,
