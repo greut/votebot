@@ -83,7 +83,7 @@ def call(method, file=None, **kwargs):
     if file:
         form.add_field('file', file)
 
-    logging.debug('POST /api/{0} {1}'.format(method, form('utf-8')))
+    logging.debug('POST (m=%s) /api/%s %s', form.is_multipart, method, kwargs)
 
     with ClientSession() as session:
         with Timeout(10):
@@ -93,8 +93,8 @@ def call(method, file=None, **kwargs):
             assert 200 == response.status, response
             try:
                 body = yield from response.json()
-                logging.debug('Response /api/{0} {1} {2}'
-                              .format(method, response.status, body))
+                logging.debug('Response /api/%s %d %s',
+                              method, response.status, body)
                 return body
             finally:
                 yield from response.release()

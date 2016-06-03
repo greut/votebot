@@ -97,7 +97,7 @@ class Bot:
     @asyncio.coroutine
     def on_message(self, message):
         """Handle a message."""
-        self.log.debug("GOT {0}".format(message))
+        self.log.debug("GOT %s", message)
 
         # 'D' means direct channel.
         if 'user' in message and message['user'] == self.rtm['self']['id']:
@@ -110,7 +110,7 @@ class Bot:
         query, emojis = extract(message['text'])
         question = '<!here> (<@{0}>): {1}'.format(message['user'], query)
 
-        self.log.info('Add new question: {0}'.format(question))
+        self.log.info('Add new question: %s', question)
         response = yield from self.call('chat.postMessage',
                                         channel=self.channel_id,
                                         username=self.name,
@@ -122,8 +122,8 @@ class Bot:
                                               timeout=self.timeout))
         # Adds reactions to it.
         for emoji in emojis:
-            self.log.info('Add reaction to {0}: {1}'
-                          .format(response['ts'], emoji))
+            self.log.info('Add reaction to %s: %s',
+                          response['ts'], emoji)
             asyncio.ensure_future(self.call('reactions.add',
                                             name=emoji.strip(':'),
                                             channel=response['channel'],
@@ -141,7 +141,7 @@ class Bot:
         :param timeout: how many seconds before closing the votes
         :type int:
         """
-        self.log.info('Wait {0}s before closing vote.'.format(timeout))
+        self.log.info('Wait %ds before closing vote.', timeout)
         done, pending = yield from asyncio.wait(
             [self.future, asyncio.sleep(timeout)],
             return_when=asyncio.FIRST_COMPLETED
@@ -174,7 +174,7 @@ class Bot:
                                         attachments=attachments,
                                         icon_emoji=':ballot_box_with_ballot:'))
 
-        self.log.info("Deleting {0}".format(question))
+        self.log.info("Deleting %s", question)
         asyncio.ensure_future(self.call('chat.delete',
                                         channel=self.channel_id,
                                         ts=timestamp))
@@ -193,6 +193,6 @@ class Bot:
             if user['id'] in ids:
                 ids.remove(user['id'])
                 yield user['name']
-        for i in ids:
-            self.log.error('{0} was not found in the RTM.'.format(i))
-            yield '<@{0}>'.format(i)
+        for id_ in ids:
+            self.log.error('%s was not found in the RTM.', id_)
+            yield '<@{0}>'.format(id_)

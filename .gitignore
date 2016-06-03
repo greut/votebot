@@ -3,9 +3,11 @@
 __py*
 *.py[co]
 bin
+dist
 lib
 lib64
 include
 *.egg-info
 pip-selfcheck.json
 pyvenv.cfg
+_build
