@@ -21,7 +21,7 @@ This bot uses extensively features from Python 3.4.
     $ python3 -m venv slack
     $ cd slack
     $ . bin/activate
-    (slack)$ pip install git+https://github.com/HE-Arc/votebot#egg=slack-votebot
+    (slack)$ pip install slack-votebot
 
 
 Usage
@@ -31,5 +31,6 @@ Usage
 
     (slack)$ export SLACK_TOKEN=xoxb-123
     (slack)$ export SLACK_CHANNEL=general
+    (slack)$ export PYTHONASYNCIODEBUG=True
     (slack)$ export DEBUG=True
     (slack)$ python -m votebot

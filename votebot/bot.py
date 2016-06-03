@@ -107,15 +107,27 @@ class Bot:
         if not message.get('type', '') == 'message':
             return
 
-        query, emojis = extract(message['text'])
-        question = '<!here> (<@{0}>): {1}'.format(message['user'], query)
+        question, emojis = extract(message['text'])
 
         self.log.info('Add new question: %s', question)
-        response = yield from self.call('chat.postMessage',
-                                        channel=self.channel_id,
-                                        username=self.name,
-                                        text=question,
-                                        icon_emoji=':ballot_box_with_ballot:')
+        response = yield from self.call(
+            'chat.postMessage',
+            channel=self.channel_id,
+            username=self.name,
+            text="<!here>",
+            attachments=[{
+                "title": question,
+                "fields": [{
+                    "title": "By",
+                    "value": "".join(self.usernames(message['user'])),
+                    "short": True,
+                },{
+                    "title": "Duration",
+                    "value": "{0:.1f}m".format(self.timeout / 60),
+                    "short": True,
+                }],
+            }],
+            icon_emoji=':ballot_box_with_ballot:')
         # End of votes.
         asyncio.ensure_future(self.cast_votes(question,
                                               response['ts'],
@@ -188,7 +200,9 @@ class Bot:
         :arguments: a list of user identifiers
         """
         ids = set(ids)
-        ids.remove(self.rtm['self']['id'])
+        me = self.rtm['self']['id']
+        if me in ids:
+            ids.remove(me)
         for user in self.rtm['users']:
             if user['id'] in ids:
                 ids.remove(user['id'])
