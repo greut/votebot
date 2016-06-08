@@ -106,17 +106,23 @@ class Bot:
             return
         if not message.get('type', '') == 'message':
             return
+        if 'text' not in message:
+            return
 
         question, emojis = extract(message['text'])
+        title, text = (question + "\n").split("\n", 1)
+        text = text.strip()
 
-        self.log.info('Add new question: %s', question)
+        self.log.info('Add new question: %s', title)
         response = yield from self.call(
             'chat.postMessage',
             channel=self.channel_id,
             username=self.name,
             text="<!here>",
             attachments=[{
-                "title": question,
+                "title": title,
+                "text": text,
+                "mrkdwn_in": ["text"],
                 "fields": [{
                     "title": "By",
                     "value": "".join(self.usernames(message['user'])),
@@ -129,7 +135,7 @@ class Bot:
             }],
             icon_emoji=':ballot_box_with_ballot:')
         # End of votes.
-        asyncio.ensure_future(self.cast_votes(question,
+        asyncio.ensure_future(self.cast_votes(title, text,
                                               response['ts'],
                                               timeout=self.timeout))
         # Adds reactions to it.
@@ -142,12 +148,14 @@ class Bot:
                                             timestamp=response['ts']))
 
     @asyncio.coroutine
-    def cast_votes(self, question, timestamp, timeout):
+    def cast_votes(self, title, text, timestamp, timeout):
         """
         End a vote by displaying the results and delete the original message.
 
-        :param question: Initial question.
-        :type question: str
+        :param title: Initial question title.
+        :type title: str
+        :param text: Initial question body.
+        :type text: str
         :param timestamp: message identifier
         :type timestamp: str
         :param timeout: how many seconds before closing the votes
@@ -174,7 +182,9 @@ class Bot:
         sorted(fields)
 
         attachments = [{
-            'text': question,
+            'title': title,
+            'text': text,
+            'mrkdwn_in': ['text'],
             'fields': [{'title': ':{0}: {1}'.format(n, c),
                         'value': ', '.join(self.usernames(*u))}
                        for c, n, u in fields]
@@ -186,7 +196,7 @@ class Bot:
                                         attachments=attachments,
                                         icon_emoji=':ballot_box_with_ballot:'))
 
-        self.log.info("Deleting %s", question)
+        self.log.info("Deleting %s", title)
         asyncio.ensure_future(self.call('chat.delete',
                                         channel=self.channel_id,
                                         ts=timestamp))

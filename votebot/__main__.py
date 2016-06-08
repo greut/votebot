@@ -5,28 +5,28 @@ import os
 import sys
 
 from .bot import Bot
+from .config import SLACK_CHANNEL, SLACK_TOKEN, VOTE_TIMEOUT
 
 
 def main(argv):
     """Le bot."""
-    token = os.environ.get('SLACK_TOKEN')
-    channel = os.environ.get('SLACK_CHANNEL')
-
-    if not token or not channel:
-        print("Please configure a SLACK_TOKEN and a SLACK_CHANNEL.",
+    if not SLACK_TOKEN:
+        print("Please configure a SLACK_TOKEN.",
               file=sys.stderr)
         return 1
+
+    bot = Bot(SLACK_TOKEN, channel=SLACK_CHANNEL, timeout=VOTE_TIMEOUT)
 
     if os.environ.get('DEBUG'):
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
 
-    five_minutes = 5 * 60
-    bot = Bot(token, channel=channel, timeout=five_minutes)
-
+    logger = logging.getLogger(__name__)
+    logger.info("Starting the votebot on #%s, default timeout %d.",
+                SLACK_CHANNEL,
+                VOTE_TIMEOUT)
     loop = asyncio.get_event_loop()
-
     loop.run_until_complete(bot.connect())
     loop.close()
 
